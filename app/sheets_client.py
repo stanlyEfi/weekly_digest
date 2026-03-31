@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SHEET_NAME = "Messages"
-COLUMNS = ["user_id", "username", "role", "text", "timestamp", "ts", "channel", "week_number"]
+COLUMNS = ["user_id", "text", "timestamp", "week_number", "processed", "ts", "channel", "username", "role"]
 
 
 class SheetsClient:
@@ -20,7 +20,7 @@ class SheetsClient:
         values = [[row.get(col, "") for col in COLUMNS]]
         self.service.spreadsheets().values().append(
             spreadsheetId=self.spreadsheet_id,
-            range=f"{SHEET_NAME}!A:H",
+            range=f"{SHEET_NAME}!A:I",
             valueInputOption="USER_ENTERED",
             body={"values": values},
         ).execute()
@@ -29,7 +29,7 @@ class SheetsClient:
         result = (
             self.service.spreadsheets()
             .values()
-            .get(spreadsheetId=self.spreadsheet_id, range=f"{SHEET_NAME}!A:H")
+            .get(spreadsheetId=self.spreadsheet_id, range=f"{SHEET_NAME}!A:I")
             .execute()
         )
         values = result.get("values", [])

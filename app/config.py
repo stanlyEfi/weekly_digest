@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     spreadsheet_id: str
     gemini_api_key: str
     digest_channel_id: str
-    insight_channel_id: str
     admin_secret: str
     digest_cron_day: str = "fri"
     digest_cron_hour: int = 18

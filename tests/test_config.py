@@ -8,7 +8,6 @@ def test_settings_loads_from_env():
     assert settings.spreadsheet_id == "test-spreadsheet-id"
     assert settings.gemini_api_key == "test-gemini-key"
     assert settings.digest_channel_id == "C-test-digest"
-    assert settings.insight_channel_id == "C-test-insight"
     assert settings.admin_secret == "test-secret"
 
 

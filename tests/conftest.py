@@ -12,5 +12,4 @@ def set_test_env(monkeypatch):
     monkeypatch.setenv("SPREADSHEET_ID", "test-spreadsheet-id")
     monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
     monkeypatch.setenv("DIGEST_CHANNEL_ID", "C-test-digest")
-    monkeypatch.setenv("INSIGHT_CHANNEL_ID", "C-test-insight")
     monkeypatch.setenv("ADMIN_SECRET", "test-secret")
