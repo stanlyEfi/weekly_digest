@@ -1,10 +1,16 @@
 services:
   web:
     build: .
-    ports:
-      - "8000:8000"
     env_file:
       - .env
     volumes:
       - ./credentials.json:/app/credentials.json:ro
+    networks:
+      proxy-net:
+        aliases:
+          - digest-web
     restart: unless-stopped
+
+networks:
+  proxy-net:
+    external: true
