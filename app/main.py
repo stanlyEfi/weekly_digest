@@ -50,6 +50,10 @@ def create_app() -> FastAPI:
     def _run_digest():
         generate_digest(sheets_client, gemini_client, slack_client, settings.digest_channel_id)
 
+    def _run_test_digest():
+        if settings.test_channel_id:
+            generate_digest(sheets_client, gemini_client, slack_client, settings.test_channel_id)
+
     @app.get("/health")
     async def health():
         return {"status": "ok"}
