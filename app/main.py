@@ -14,6 +14,11 @@ from app.slack_handler import process_message, verify_slack_signature
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# APScheduler drops a job silently if it fires later than misfire_grace_time
+# (default: 1 second). The host swaps, so a sub-second stall is enough to lose
+# a whole week's digest. An hour of slack costs nothing — the job is weekly.
+DIGEST_MISFIRE_GRACE_SECONDS = 3600
+
 
 def create_app() -> FastAPI:
     settings = Settings()
@@ -34,6 +39,8 @@ def create_app() -> FastAPI:
             day_of_week=settings.digest_cron_day,
             hour=settings.digest_cron_hour,
             minute=settings.digest_cron_minute,
+            misfire_grace_time=DIGEST_MISFIRE_GRACE_SECONDS,
+            coalesce=True,
         )
         scheduler.start()
         logger.info(

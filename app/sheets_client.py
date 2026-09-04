@@ -7,6 +7,11 @@ logger = logging.getLogger(__name__)
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SHEET_NAME = "Messages"
+
+# googleapiclient defaults to num_retries=0. The long-lived httplib2 connection
+# goes stale during idle gaps and the next call dies with BrokenPipeError —
+# which is exactly what killed the weekly digest. Retrying reopens the socket.
+NUM_RETRIES = 3
 COLUMNS = ["user_id", "text", "timestamp", "week_number", "processed", "ts", "channel", "username", "role"]
 
 
@@ -23,14 +28,14 @@ class SheetsClient:
             range=f"{SHEET_NAME}!A:I",
             valueInputOption="USER_ENTERED",
             body={"values": values},
-        ).execute()
+        ).execute(num_retries=NUM_RETRIES)
 
     def get_all_rows(self) -> list[dict]:
         result = (
             self.service.spreadsheets()
             .values()
             .get(spreadsheetId=self.spreadsheet_id, range=f"{SHEET_NAME}!A:I")
-            .execute()
+            .execute(num_retries=NUM_RETRIES)
         )
         values = result.get("values", [])
         if len(values) < 2:

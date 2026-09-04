@@ -60,3 +60,34 @@ def test_get_all_rows_empty_sheet():
 
     rows = client.get_all_rows()
     assert rows == []
+
+
+def test_append_row_retries_on_transient_network_error():
+    """A stale keep-alive socket must not lose the message: execute() retries."""
+    mock_service = MagicMock()
+    mock_append = mock_service.spreadsheets().values().append
+
+    client = _make_client(mock_service)
+    client.append_row({"user_id": "U123", "text": "hi"})
+
+    _, kwargs = mock_append.return_value.execute.call_args
+    assert kwargs.get("num_retries", 0) >= 1, (
+        "append_row must pass num_retries so googleapiclient reopens a dead "
+        "keep-alive connection instead of raising BrokenPipeError"
+    )
+
+
+def test_get_all_rows_retries_on_transient_network_error():
+    """The weekly digest read is the first request after a long idle gap."""
+    mock_service = MagicMock()
+    mock_get = mock_service.spreadsheets().values().get
+    mock_get.return_value.execute.return_value = {"values": []}
+
+    client = _make_client(mock_service)
+    client.get_all_rows()
+
+    _, kwargs = mock_get.return_value.execute.call_args
+    assert kwargs.get("num_retries", 0) >= 1, (
+        "get_all_rows must pass num_retries — this is the call that killed the "
+        "digest on 2026-07-31 and 2026-09-04 with BrokenPipeError"
+    )

@@ -84,3 +84,26 @@ def _sign(body: str, timestamp: str) -> str:
     return "v0=" + hmac.new(
         b"test-signing-secret", sig_basestring, hashlib.sha256
     ).hexdigest()
+
+
+@pytest.mark.asyncio
+async def test_digest_job_survives_late_trigger():
+    """A swapping 1GB host stalls the loop; a 1s misfire grace window silently
+    drops the whole week's digest (this happened on 2026-08-21)."""
+    with patch("app.main.SheetsClient"), \
+         patch("app.main.SlackClient"), \
+         patch("app.main.GeminiClient"), \
+         patch("app.main.AsyncIOScheduler") as mock_sched_cls:
+        mock_scheduler = MagicMock()
+        mock_sched_cls.return_value = mock_scheduler
+
+        app = create_app()
+        async with app.router.lifespan_context(app):
+            pass
+
+    _, kwargs = mock_scheduler.add_job.call_args
+    assert kwargs.get("misfire_grace_time", 1) >= 600, (
+        "add_job must widen misfire_grace_time; APScheduler defaults to 1 second "
+        "and silently skips the job if the event loop stalls past it"
+    )
+    assert kwargs.get("coalesce") is True
